@@ -3,8 +3,12 @@ import google.generativeai as genai
 import yfinance as yf
 import numpy as np
 from datetime import datetime, timedelta
-import requests
-
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import linear_kernel
+import pandas as pd
+import yfinance as yf
+import json
 
 app = Flask(__name__)
 
@@ -77,6 +81,62 @@ def riskScore(symbol):
 
     except KeyError:
         return None
+    
+def filter(sector, risk_will=100):
+    df = pd.read_csv('api/constituents_csv.csv', sep=',')
+    sector_df = df[df['Sector'] == sector]
+
+    filtered_dataframe = sector_df.copy()
+    for index, row in sector_df.iterrows():
+        try:
+            risk_result = riskScore(row['Symbol'])
+            if risk_result is not None:
+                value = risk_result['risk']
+                # Rest of your code
+                if value is not None and value > risk_will:
+                    filtered_dataframe = filtered_dataframe.drop(index)
+                else:
+                    # Append the percent score for each stock in a new row of the DataFrame
+                    filtered_dataframe.loc[index, 'Percent Score'] = value
+
+        except KeyError:
+            pass
+
+    filtered_dataframe = filtered_dataframe.reset_index(drop=True)
+
+    return filtered_dataframe
+
+def get_recommendations_for_symbol(selected_symbol, sector="Information Technology", top_n=4):
+    # Filter DataFrame by sector
+    df = filter(sector)
+
+    # Convert 'Percent Score' to string and fill missing values with "50"
+    df['Percent Score'] = df['Percent Score'].apply(lambda x: str(x) if pd.notna(x) else "50")
+
+    # Compute the TF-IDF matrix
+    tfidf = TfidfVectorizer(stop_words='english')
+    tfidf_matrix = tfidf.fit_transform(df['Percent Score'])
+
+    # Compute cosine similarity
+    cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
+
+    # Get movie recommendations based on cosine similarity
+    idx_list = df.index[df['Symbol'].str.lower() == selected_symbol.lower()].tolist()
+    print(idx_list)
+    if idx_list:
+        idx = idx_list[0]
+        sim_scores = list(enumerate(cosine_sim[idx]))
+        sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+        sim_scores = sim_scores[1:top_n + 1]
+        movie_indices = [i[0] for i in sim_scores]
+        recommended_data = df.iloc[movie_indices][['Symbol', 'Name']].values
+        print('RECCOMMENEDEDD')
+        print(type(recommended_data))
+        return {"recommendations": recommended_data}
+    
+    else:
+        return {"recommendations": [['PAYC', 'Paycom'], ['CRM', 'Salesforce'], ['ACN', 'Accenture'], ['ADBE', 'Adobe']]}
+
 
 @app.route('/')
 def home():
@@ -89,14 +149,17 @@ def describe_api():
     score = riskScore(stock_symbol)
 
     description.update(score)
+    # description.update(recommendations)
 
     return jsonify(description)
 
-@app.route('/api/score', methods=['GET'])
-def score_api():
+
+@app.route('/api/rec', methods=['GET'])
+def rec_api():
     stock_symbol = request.args.get('symbol')
-    description = riskScore(stock_symbol)
-    return jsonify(description)
+    sector_in = request.args.get('sector')
+    recommendations = get_recommendations_for_symbol(stock_symbol, sector_in, top_n=4)
+    return jsonify(recommendations)
 
 if __name__ == '__main__':
     app.run(debug=True)
