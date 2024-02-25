@@ -11,7 +11,7 @@ GOOGLE_API_KEY = 'AIzaSyBEH0mo0PAabKy80amr5_nzBf6Gh5VdiAA'
 def describe(stock):
     genai.configure(api_key=GOOGLE_API_KEY)
     model = genai.GenerativeModel('gemini-pro')
-    response = model.generate_content("Generate 3 short points describing this company: " + stock)
+    response = model.generate_content("Generate 2 short sentences describing this company: " + stock)
     return {"description": response.text}
 
 
