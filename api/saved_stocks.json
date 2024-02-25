@@ -1,0 +1,17 @@
+[
+    {
+        "Symbol": "AAPL",
+        "Name": "Apple",
+        "Sector": "Information Technology"
+    },
+    {
+        "Symbol": "DIS",
+        "Name": "Disney",
+        "Sector": "Information Technology"
+    },
+    {
+        "Symbol": "NFLX",
+        "Name": "Netflix",
+        "Sector": "Information Technology"
+    }
+]

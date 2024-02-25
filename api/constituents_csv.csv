@@ -504,3 +504,13 @@ ZBRA,Zebra Technologies,Information Technology
 ZBH,Zimmer Biomet,Health Care
 ZION,Zions Bancorp,Financials
 ZTS,Zoetis,Health Care
+
+
+
+Stock(name: "Lam", symbol: "LRCX", description: "", risk: ""),
+Stock(name:"Mastercard", symbol:  "MA", description: "", risk:   ""),
+Stock(name: "NetApp", symbol: "NTAP", description: "", risk: ""),
+Stock(name:"PTC", symbol:"PTC", description: "", risk: ""),
+Stock(name: "Qualcomm", symbol: "QCOM", description: "", risk: ""),
+Stock(name: "Salesforce", symbol: "CRM", description: "", risk: ""),
+Stock(name: "Teradyne", symbol: "TER", description: "", risk: "")

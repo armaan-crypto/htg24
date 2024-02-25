@@ -103,15 +103,19 @@ def filter(sector, risk_will=100):
             pass
 
     filtered_dataframe = filtered_dataframe.reset_index(drop=True)
-
     return filtered_dataframe
+
 
 def get_recommendations_for_symbol(selected_symbol, sector="Information Technology", top_n=4):
     # Filter DataFrame by sector
-    df = filter(sector)
+    df = filter("Information Technology")
+
+    print(df.head())
 
     # Convert 'Percent Score' to string and fill missing values with "50"
     df['Percent Score'] = df['Percent Score'].apply(lambda x: str(x) if pd.notna(x) else "50")
+
+    print(df.head())
 
     # Compute the TF-IDF matrix
     tfidf = TfidfVectorizer(stop_words='english')
@@ -122,7 +126,6 @@ def get_recommendations_for_symbol(selected_symbol, sector="Information Technolo
 
     # Get movie recommendations based on cosine similarity
     idx_list = df.index[df['Symbol'].str.lower() == selected_symbol.lower()].tolist()
-    print(idx_list)
     if idx_list:
         idx = idx_list[0]
         sim_scores = list(enumerate(cosine_sim[idx]))
@@ -130,12 +133,10 @@ def get_recommendations_for_symbol(selected_symbol, sector="Information Technolo
         sim_scores = sim_scores[1:top_n + 1]
         movie_indices = [i[0] for i in sim_scores]
         recommended_data = df.iloc[movie_indices][['Symbol', 'Name']].values
-        print('RECCOMMENEDEDD')
-        print(type(recommended_data))
         return {"recommendations": recommended_data}
     
     else:
-        return {"recommendations": [['PAYC', 'Paycom'], ['CRM', 'Salesforce'], ['ACN', 'Accenture'], ['ADBE', 'Adobe']]}
+        return {"error": "not in list"}
 
 
 @app.route('/')
